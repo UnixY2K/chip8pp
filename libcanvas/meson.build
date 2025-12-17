@@ -7,7 +7,7 @@ libcanvas_srcs = files(
     'src/grid.cpp',
 )
 libcanvas_deps = [
-    sdl2_dep,
+    sdl3_dep,
 ]
 
 # make a static library
@@ -30,9 +30,9 @@ example_srcs = files(
 )
 example_deps = [
     libcanvas_dep,
-    sdl2_dep,
+    sdl3_dep,
 ]
-example = executable(
+executable(
     'example',
     example_srcs,
     dependencies: example_deps,

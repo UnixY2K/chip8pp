@@ -8,9 +8,8 @@ project('chip8pp',
 
 cc = meson.get_compiler('cpp')
 
-sdl2_dep = dependency('sdl2', version: '>=2.0.0', fallback: ['sdl2', 'sdl2_dep'])
+sdl3_dep = dependency('sdl3', version: '>=3.2.10', fallback: ['sdl3', 'sdl3_dep'])
 cli11_dep = dependency('cli11', version: '>=2.3.2', fallback: ['cli11', 'CLI11_dep'])
-fmt_dep = dependency('fmt', version: '>=8.0.1', fallback: ['fmt', 'fmt_dep'])
 
 subdir('libcanvas')
 subdir('emulator')

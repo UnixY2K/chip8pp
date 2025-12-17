@@ -1,29 +1,24 @@
 #define SDL_MAIN_HANDLED
+
+#include <chrono>
+#include <format>
+#include <iostream>
+#include <string>
+#include <thread>
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_events.h>
+
 #include <CLI/App.hpp>
 #include <CLI/CLI.hpp>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_events.h>
+
+#include <libcanvas/screen.hpp>
+
 #include <chip8pp/cpu.hpp>
 #include <chip8pp/instructions.hpp>
 #include <chip8pp/keypad.hpp>
 #include <chip8pp/memory.hpp>
 #include <chip8pp/utils.hpp>
-#include <chrono>
-#include <iostream>
-#include <libcanvas/screen.hpp>
-#include <string>
-#include <thread>
-// check if format is available
-#if __has_include(<format>)
-#include <format>
-using std::format;
-// if not, use fmt
-#elif __has_include(<fmt/format.h>)
-#include <fmt/format.h>
-using fmt::format;
-#else
-#error "No <format> or <fmt/format.h> found"
-#endif
 
 void cpu_thread_fn(std::stop_token stop_token, chip8pp::CPU &cpu,
                    Memory &memory, Screen &screen, chip8pp::Keypad &keypad) {
@@ -65,18 +60,18 @@ void main_thread_fn(chip8pp::CPU &, Memory &, Screen &screen,
 	    {SDLK_2, chip8pp::Keypad::Key::KEY_2},
 	    {SDLK_3, chip8pp::Keypad::Key::KEY_3},
 	    {SDLK_4, chip8pp::Keypad::Key::KEY_C},
-	    {SDLK_q, chip8pp::Keypad::Key::KEY_4},
-	    {SDLK_w, chip8pp::Keypad::Key::KEY_5},
-	    {SDLK_e, chip8pp::Keypad::Key::KEY_6},
-	    {SDLK_r, chip8pp::Keypad::Key::KEY_D},
-	    {SDLK_a, chip8pp::Keypad::Key::KEY_7},
-	    {SDLK_s, chip8pp::Keypad::Key::KEY_8},
-	    {SDLK_d, chip8pp::Keypad::Key::KEY_9},
-	    {SDLK_f, chip8pp::Keypad::Key::KEY_E},
-	    {SDLK_z, chip8pp::Keypad::Key::KEY_A},
-	    {SDLK_x, chip8pp::Keypad::Key::KEY_0},
-	    {SDLK_c, chip8pp::Keypad::Key::KEY_B},
-	    {SDLK_v, chip8pp::Keypad::Key::KEY_F},
+	    {SDLK_Q, chip8pp::Keypad::Key::KEY_4},
+	    {SDLK_W, chip8pp::Keypad::Key::KEY_5},
+	    {SDLK_E, chip8pp::Keypad::Key::KEY_6},
+	    {SDLK_R, chip8pp::Keypad::Key::KEY_D},
+	    {SDLK_A, chip8pp::Keypad::Key::KEY_7},
+	    {SDLK_S, chip8pp::Keypad::Key::KEY_8},
+	    {SDLK_D, chip8pp::Keypad::Key::KEY_9},
+	    {SDLK_F, chip8pp::Keypad::Key::KEY_E},
+	    {SDLK_Z, chip8pp::Keypad::Key::KEY_A},
+	    {SDLK_X, chip8pp::Keypad::Key::KEY_0},
+	    {SDLK_C, chip8pp::Keypad::Key::KEY_B},
+	    {SDLK_V, chip8pp::Keypad::Key::KEY_F},
 	};
 	// timer to draw each 16.666 ms
 	std::chrono::steady_clock::time_point last_draw =
@@ -89,15 +84,15 @@ void main_thread_fn(chip8pp::CPU &, Memory &, Screen &screen,
 		if (SDL_PollEvent(&event)) {
 			switch (event.type) {
 			// key pressed
-			case SDL_KEYDOWN:
+			case SDL_EVENT_KEY_DOWN:
 				// check for each mapped key if it was pressed
 				for (auto &[sdl_key, chip8_key] : keymap) {
-					if (event.key.keysym.sym == sdl_key) {
+					if (event.key.key == sdl_key) {
 						keypad.press(chip8_key);
 					}
 				}
 				break;
-			case SDL_QUIT:
+			case SDL_EVENT_QUIT:
 				continue_loop = false;
 				break;
 			}
@@ -129,7 +124,11 @@ int main(int argc, char **argv) {
 	CLI11_PARSE(app, argc, argv);
 
 	try {
-		auto [rom, rom_size] = chip8pp::utils::load_file(argv[1]);
+		if (rom_path.empty()) {
+			std::cout << "must provide a rom file\n";
+			return 0;
+		}
+		auto [rom, rom_size] = chip8pp::utils::load_file(rom_path);
 		Memory memory;
 		// load fontset into ram
 		// store the font in 0x50 to 0x9F

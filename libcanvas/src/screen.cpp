@@ -1,11 +1,15 @@
-#include <SDL2/SDL.h>
+#include <assert.h>
 #include <cstddef>
 #include <cstring>
+#include <format>
 #include <iostream>
+#include <string_view>
+
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL.h>
+
 #include <libcanvas/grid.hpp>
 #include <libcanvas/screen.hpp>
-#include <sstream>
-#include <string_view>
 
 Screen::Screen(std::size_t screenWidth, std::size_t screenHeight)
     : m_window(nullptr), m_renderer(nullptr), m_texture(nullptr),
@@ -13,19 +17,19 @@ Screen::Screen(std::size_t screenWidth, std::size_t screenHeight)
       screenHeight(screenHeight), pixelWidth(screenWidth),
       pixelHeight(screenHeight), grid(1, 1) {}
 
+[[nodiscard("screen initialization check must not be skipped")]]
 bool Screen::init(std::string_view title, std::size_t gridWidth,
                   std::size_t gridHeight) {
 	pixelWidth = screenWidth / gridWidth;
 	pixelHeight = screenHeight / gridHeight;
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		std::cout << "Could not initialize SDL graphics" << std::endl;
+	if (!SDL_Init(SDL_INIT_VIDEO)) {
+		std::cout << std::format("Could not initialize SDL graphics:{}\n",
+		                         SDL_GetError());
 		return false;
 	}
 
-	m_window = SDL_CreateWindow(title.data(), SDL_WINDOWPOS_UNDEFINED,
-	                            SDL_WINDOWPOS_UNDEFINED, screenWidth,
-	                            screenHeight, SDL_WINDOW_SHOWN);
+	m_window = SDL_CreateWindow(title.data(), screenWidth, screenHeight, {});
 
 	if (!m_window) {
 		SDL_Log("Could not create the window. ");
@@ -34,7 +38,7 @@ bool Screen::init(std::string_view title, std::size_t gridWidth,
 		return false;
 	}
 
-	m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_PRESENTVSYNC);
+	m_renderer = SDL_CreateRenderer(m_window, nullptr);
 
 	if (!m_renderer) {
 		SDL_Log("Could not create the renderer. ");
@@ -67,6 +71,7 @@ bool Screen::init(std::string_view title, std::size_t gridWidth,
 void Screen::update() {
 	std::vector<pixelRGBA_t> gridBuffer = grid.getBuffer();
 	pixelRGBA_t *mainBuffer = m_mainBuffer.get();
+	assert(mainBuffer);
 	// update the texture with the grid data
 	for (size_t i = 0; i < grid.getWidth(); i++) {
 		for (size_t j = 0; j < grid.getHeight(); j++) {
@@ -83,7 +88,7 @@ void Screen::update() {
 	SDL_UpdateTexture(m_texture, nullptr, m_mainBuffer.get(),
 	                  screenWidth * sizeof(Uint32));
 	SDL_RenderClear(m_renderer);
-	SDL_RenderCopy(m_renderer, m_texture, nullptr, nullptr);
+	SDL_RenderTexture(m_renderer, m_texture, nullptr, nullptr);
 	SDL_RenderPresent(m_renderer);
 }
 
