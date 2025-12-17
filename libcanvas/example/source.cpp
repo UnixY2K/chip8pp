@@ -4,27 +4,9 @@
 
 #include <libcanvas/screen.hpp>
 
-#ifdef __APPLE__
 
-#include <dlfcn.h> //To make it work on mac
-
-// This must be called before playing with SDL, else it won't work on osx.
-
-void pre_init() {
-	void *cocoa_lib;
-
-	cocoa_lib =
-	    dlopen("/System/Library/Frameworks/Cocoa.framework/Cocoa", RTLD_LAZY);
-	void (*nsappload)(void);
-	nsappload = (void (*)())dlsym(cocoa_lib, "NSApplicationLoad");
-	nsappload();
-}
-#else
-void pre_init() {}
-#endif
 
 int main() {
-	pre_init();
 	constexpr size_t width = 800;
 	constexpr size_t height = 600;
 	Screen screen(width, height);

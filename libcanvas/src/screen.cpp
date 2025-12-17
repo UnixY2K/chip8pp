@@ -5,8 +5,8 @@
 #include <iostream>
 #include <string_view>
 
-#include <SDL3/SDL_error.h>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_error.h>
 
 #include <libcanvas/grid.hpp>
 #include <libcanvas/screen.hpp>

@@ -4,8 +4,8 @@ emulator_incl = [
 ]
 emulator_srcs = files(
     'src/cpu.cpp',
-    'src/InstructionDecoder.cpp',
-    'src/InstructionsImpl.cpp',
+    'src/instructionDecoder.cpp',
+    'src/instructionsImpl.cpp',
     'src/keypad.cpp',
     'src/memory.cpp',
     'src/source.cpp',
