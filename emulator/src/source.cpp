@@ -149,8 +149,9 @@ int main(int argc, char **argv) {
 		Screen screen(screen_width * screen_scale,
 		              screen_height * screen_scale);
 
-		screen.init("Chip8 Emulator", screen_width, screen_height);
-
+		if (!screen.init("Chip8 Emulator", screen_width, screen_height)) {
+			return -1;
+		}
 		// launch the cpu thread
 		std::jthread cpu_thread(cpu_thread_fn, std::ref(cpu), std::ref(memory),
 		                        std::ref(screen), std::ref(keypad));
@@ -163,6 +164,6 @@ int main(int argc, char **argv) {
 
 		screen.close();
 	} catch (const std::exception &e) {
-		std::cout << e.what() << std::endl;
+		std::cerr << std::format("{}\n", e.what());
 	}
 }
